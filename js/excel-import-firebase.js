@@ -21,39 +21,12 @@ let parsedData = null;
 // ==================== KNOWN TRUCKS & DRIVERS ====================
 // Maps matricule → id (matching DEFAULT_TRUCKS in data-firebase.js)
 const TRUCK_MAP = {
-    '8565 TU 257': { id: 't1', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    '8563 TU 257': { id: 't2', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    '5305 TU 236': { id: 't3', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '924 TU 98':   { id: 't4', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '6980 TU 101': { id: 't5', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '7775 TU 252': { id: 't6', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '4176 TU 250': { id: 't7', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    '3380 TU 104': { id: 't8', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '446 TU 228':  { id: 't9', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '7243 TU 75':  { id: 't10', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '4188 TU 80':  { id: 't11', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '2318 TU 155': { id: 't12', type: 'BENNE', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '788 TU 99':   { id: 't13', type: 'BENNE', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    '8564 TU 257': { id: 't14', type: 'BENNE', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    '8566 TU 257': { id: 't15', type: 'BENNE', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 }
+
 };
 
 // Maps driver name (uppercase trimmed) → id
 const DRIVER_MAP = {
-    'CHOKAIRI':       { id: 'd1', camionId: 't1' },
-    'LASSAD CHATAOUI':{ id: 'd2', camionId: 't2' },
-    'HAMZA':          { id: 'd3', camionId: 't3' },
-    'IKRAMI':         { id: 'd4', camionId: 't4' },
-    'ABDELBARI':      { id: 'd5', camionId: 't5' },
-    'JAMIL':          { id: 'd6', camionId: 't6' },
-    'HEDI':           { id: 'd7', camionId: 't7' },
-    'MALEK':          { id: 'd8', camionId: 't8' },
-    'LASSAD AMRI':    { id: 'd9', camionId: 't10' },
-    'SAMI':           { id: 'd10', camionId: 't11' },
-    'KAMEL CH':       { id: 'd11', camionId: 't12' },
-    'KAMEL ZAY':      { id: 'd12', camionId: 't13' },
-    'CHOKRI THAMER':  { id: 'd13', camionId: 't14' },
-    'HSAN REBII':     { id: 'd14', camionId: 't15' }
+
 };
 
 function resolveTruckId(matricule) {

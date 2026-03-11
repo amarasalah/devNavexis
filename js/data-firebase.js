@@ -38,39 +38,12 @@ const DEFAULT_SETTINGS = {
 
 // Pre-loaded trucks from Excel
 const DEFAULT_TRUCKS = [
-    { id: 't1', matricule: '8565 TU 257', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't2', matricule: '8563 TU 257', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't3', matricule: '5305 TU 236', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't4', matricule: '924 TU 98', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't5', matricule: '6980 TU 101', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't6', matricule: '7775 TU 252', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't7', matricule: '4176 TU 250', type: 'PLATEAU', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't8', matricule: '3380 TU 104', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't9', matricule: '446 TU 228', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't10', matricule: '7243 TU 75', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't11', matricule: '4188 TU 80', type: 'PLATEAU', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't12', matricule: '2318 TU 155', type: 'BENNE', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't13', matricule: '788 TU 99', type: 'BENNE', chargesFixes: 80, montantAssurance: 20, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't14', matricule: '8564 TU 257', type: 'BENNE', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 },
-    { id: 't15', matricule: '8566 TU 257', type: 'BENNE', chargesFixes: 400, montantAssurance: 32, montantTaxe: 20, chargePersonnel: 80 }
+
 ];
 
 // Pre-loaded drivers from Excel
 const DEFAULT_DRIVERS = [
-    { id: 'd1', nom: 'CHOKAIRI', camionId: 't1' },
-    { id: 'd2', nom: 'LASSAD CHATAOUI', camionId: 't2' },
-    { id: 'd3', nom: 'HAMZA', camionId: 't3' },
-    { id: 'd4', nom: 'IKRAMI', camionId: 't4' },
-    { id: 'd5', nom: 'ABDELBARI', camionId: 't5' },
-    { id: 'd6', nom: 'JAMIL', camionId: 't6' },
-    { id: 'd7', nom: 'HEDI', camionId: 't7' },
-    { id: 'd8', nom: 'MALEK', camionId: 't8' },
-    { id: 'd9', nom: 'LASSAD AMRI', camionId: 't10' },
-    { id: 'd10', nom: 'SAMI', camionId: 't11' },
-    { id: 'd11', nom: 'KAMEL CH', camionId: 't12' },
-    { id: 'd12', nom: 'KAMEL ZAY', camionId: 't13' },
-    { id: 'd13', nom: 'CHOKRI THAMER', camionId: 't14' },
-    { id: 'd14', nom: 'HSAN REBII', camionId: 't15' }
+
 ];
 
 // Generate UUID
