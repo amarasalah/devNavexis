@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer Super Admin - One Time Setup</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
@@ -15,6 +21,7 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             color: #f1f5f9;
         }
+
         .card {
             background: rgba(30, 41, 59, 0.8);
             border: 1px solid rgba(148, 163, 184, 0.15);
@@ -25,17 +32,20 @@
             backdrop-filter: blur(20px);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
         }
+
         .card h1 {
             font-size: 1.5rem;
             text-align: center;
             margin-bottom: 8px;
         }
+
         .card p.sub {
             text-align: center;
             color: #94a3b8;
             font-size: 0.85rem;
             margin-bottom: 28px;
         }
+
         .warn {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -46,7 +56,11 @@
             margin-bottom: 24px;
             text-align: center;
         }
-        .form-group { margin-bottom: 18px; }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
         .form-group label {
             display: block;
             font-size: 0.8rem;
@@ -54,6 +68,7 @@
             color: #94a3b8;
             margin-bottom: 6px;
         }
+
         .form-group input {
             width: 100%;
             padding: 12px 14px;
@@ -65,9 +80,11 @@
             outline: none;
             transition: border-color 0.2s;
         }
+
         .form-group input:focus {
             border-color: #8b5cf6;
         }
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -81,22 +98,37 @@
             transition: opacity 0.2s;
             margin-top: 8px;
         }
-        .btn:hover { opacity: 0.9; }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         #status {
             margin-top: 16px;
             text-align: center;
             font-size: 0.85rem;
             min-height: 20px;
         }
-        .status-ok { color: #10b981; }
-        .status-err { color: #ef4444; }
-        .status-info { color: #f59e0b; }
+
+        .status-ok {
+            color: #10b981;
+        }
+
+        .status-err {
+            color: #ef4444;
+        }
+
+        .status-info {
+            color: #f59e0b;
+        }
     </style>
 </head>
+
 <body>
     <div class="card">
         <h1>🔐 Créer Super Admin</h1>
@@ -129,16 +161,16 @@
         import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
         import { getFirestore, doc, setDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-firebaseConfig = {
-  apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
-  authDomain: "devnavexis.firebaseapp.com",
-  projectId: "devnavexis",
-  storageBucket: "devnavexis.firebasestorage.app",
-  messagingSenderId: "607658047105",
-  appId: "1:607658047105:web:9b1925f8340c250d567f80",
-  measurementId: "G-WTLEQYGJWP"
-};
-
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
+            authDomain: "devnavexis.firebaseapp.com",
+            databaseURL: "https://devnavexis-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "devnavexis",
+            storageBucket: "devnavexis.firebasestorage.app",
+            messagingSenderId: "607658047105",
+            appId: "1:607658047105:web:9b1925f8340c250d567f80",
+            measurementId: "G-WTLEQYGJWP"
+        };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -233,4 +265,5 @@ firebaseConfig = {
         };
     </script>
 </body>
+
 </html>

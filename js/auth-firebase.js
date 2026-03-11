@@ -13,14 +13,15 @@ import {
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth as getSecondaryAuth, createUserWithEmailAndPassword as createSecondaryUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-firebaseConfig = {
-  apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
-  authDomain: "devnavexis.firebaseapp.com",
-  projectId: "devnavexis",
-  storageBucket: "devnavexis.firebasestorage.app",
-  messagingSenderId: "607658047105",
-  appId: "1:607658047105:web:9b1925f8340c250d567f80",
-  measurementId: "G-WTLEQYGJWP"
+const firebaseConfig = {
+    apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
+    authDomain: "devnavexis.firebaseapp.com",
+    databaseURL: "https://devnavexis-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "devnavexis",
+    storageBucket: "devnavexis.firebasestorage.app",
+    messagingSenderId: "607658047105",
+    appId: "1:607658047105:web:9b1925f8340c250d567f80",
+    measurementId: "G-WTLEQYGJWP"
 };
 
 // ============================================================
