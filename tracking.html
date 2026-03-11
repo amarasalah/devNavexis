@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetTrack - Suivi de Livraison</title>
+    <link rel="icon" type="image/png" href="images/logo_concept.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .tracking-container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .tracking-header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        .tracking-header .logo-img {
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .tracking-header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .tracking-header .subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error */
+        .error-card {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 16px;
+        }
+
+        .error-card .icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .error-card h2 {
+            color: #ef4444;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .error-card p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        /* Status Card */
+        .status-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Status Progress */
+        .status-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0 30px;
+            position: relative;
+        }
+
+        .status-progress::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 2px;
+        }
+
+        .status-progress .progress-fill {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .status-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-step .step-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 2px solid rgba(148, 163, 184, 0.3);
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .status-step.active .step-icon {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .status-step.done .step-icon {
+            border-color: #10b981;
+            background: #10b981;
+        }
+
+        .status-step .step-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .status-step.active .step-label,
+        .status-step.done .step-label {
+            color: #10b981;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 16px 4px rgba(16, 185, 129, 0.2);
+            }
+        }
+
+        /* Info Rows */
+        .info-section {
+            margin-bottom: 8px;
+        }
+
+        .info-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row .label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .info-row .value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Status badge */
+        .status-badge-lg {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-planifie {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-en-cours {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status-termine {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-annule {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Footer */
+        .tracking-footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px 0;
+            color: #475569;
+            font-size: 0.75rem;
+        }
+
+        .tracking-footer a {
+            color: #6366f1;
+            text-decoration: none;
+        }
+
+        /* Live indicator */
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Refresh */
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tracking-container">
+        <div class="tracking-header">
+            <img src="images/logo_concept.png" alt="FleetTrack" class="logo-img" onerror="this.style.display='none'">
+            <h1>🚛 Suivi de Livraison</h1>
+            <p class="subtitle">Suivez votre livraison en temps réel</p>
+        </div>
+
+        <div id="trackingContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Chargement du suivi...</p>
+            </div>
+        </div>
+
+        <div class="tracking-footer">
+            <p>Powered by <a href="#">FleetTrack</a> &copy; 2026</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+       firebaseConfig = {
+  apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
+  authDomain: "devnavexis.firebaseapp.com",
+  projectId: "devnavexis",
+  storageBucket: "devnavexis.firebasestorage.app",
+  messagingSenderId: "607658047105",
+  appId: "1:607658047105:web:9b1925f8340c250d567f80",
+  measurementId: "G-WTLEQYGJWP"
+};
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Get plan ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const planId = params.get('id');
+        const container = document.getElementById('trackingContent');
+
+        if (!planId) {
+            showError('Lien invalide', 'Aucun identifiant de livraison trouvé dans le lien.');
+        } else {
+            // Live listener on the plan document
+            const planRef = doc(db, 'planifications', planId);
+
+            // First try planifications, if deleted check entries
+            onSnapshot(planRef, async (snap) => {
+                if (snap.exists()) {
+                    renderTracking(snap.data(), planId);
+                } else {
+                    // Plan may have been converted to entry (terminé)
+                    await checkEntries(planId);
+                }
+            }, (err) => {
+                console.error('Snapshot error:', err);
+                showError('Erreur de connexion', 'Impossible de charger les données de suivi.');
+            });
+        }
+
+        async function checkEntries(planId) {
+            try {
+                // Search entries collection for this planification
+                const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const entriesRef = collection(db, 'entries');
+                const snap = await getDocs(entriesRef);
+                const entry = snap.docs.find(d => d.data().planificationId === planId);
+
+                if (entry) {
+                    renderTracking({ ...entry.data(), statut: 'termine' }, planId);
+                } else {
+                    showError('Livraison introuvable', 'Ce lien de suivi n\'est plus valide ou la livraison a été supprimée.');
+                }
+            } catch (err) {
+                showError('Livraison terminée', 'Cette livraison a été finalisée.');
+            }
+        }
+
+        function renderTracking(plan, id) {
+            const statut = plan.statut || 'planifie';
+            const statusConfig = {
+                'planifie': { label: 'Planifié', class: 'status-planifie', icon: '📋', step: 1 },
+                'en_cours_chargement': { label: 'Chargement', class: 'status-en-cours', icon: '📦', step: 2 },
+                'en_cours': { label: 'En route', class: 'status-en-cours', icon: '🚛', step: 3 },
+                'en_route': { label: 'En route', class: 'status-en-cours', icon: '🚛', step: 3 },
+                'attente_confirmation': { label: 'Arrivé', class: 'status-en-cours', icon: '📍', step: 3 },
+                'termine': { label: 'Livré', class: 'status-termine', icon: '✅', step: 4 },
+                'annule': { label: 'Annulé', class: 'status-annule', icon: '❌', step: 0 }
+            };
+            const sc = statusConfig[statut] || statusConfig['planifie'];
+            const progressWidth = statut === 'annule' ? '0%' : `${((sc.step - 1) / 3) * 100}%`;
+
+            const formatDate = (d) => {
+                if (!d) return '-';
+                const [y, m, day] = d.split('-');
+                return `${day}/${m}/${y}`;
+            };
+
+            container.innerHTML = `
+                <!-- Live Status -->
+                <div class="status-card" style="text-align:center">
+                    <div class="refresh-bar">
+                        <span class="live-dot"></span> Mise à jour en temps réel
+                    </div>
+
+                    <div style="margin: 16px 0">
+                        <span class="status-badge-lg ${sc.class}">${sc.icon} ${sc.label}</span>
+                    </div>
+
+                    <!-- Progress Steps -->
+                    <div class="status-progress">
+                        <div class="progress-fill" style="width: ${progressWidth}"></div>
+                        <div class="status-step ${sc.step >= 1 ? (sc.step > 1 ? 'done' : 'active') : ''}">
+                            <div class="step-icon">📋</div>
+                            <span class="step-label">Planifié</span>
+                        </div>
+                        <div class="status-step ${sc.step >= 2 ? (sc.step > 2 ? 'done' : 'active') : ''}">
+                            <div class="step-icon">📦</div>
+                            <span class="step-label">Chargement</span>
+                        </div>
+                        <div class="status-step ${sc.step >= 3 ? (sc.step > 3 ? 'done' : 'active') : ''}">
+                            <div class="step-icon">🚛</div>
+                            <span class="step-label">En route</span>
+                        </div>
+                        <div class="status-step ${sc.step >= 4 ? 'done' : ''}">
+                            <div class="step-icon">✅</div>
+                            <span class="step-label">Livré</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip Details -->
+                <div class="status-card">
+                    <div class="info-section">
+                        <h3>📍 Détails du trajet</h3>
+                        <div class="info-row">
+                            <span class="label">Date</span>
+                            <span class="value">${formatDate(plan.date)}${plan.heure ? ' à ' + plan.heure : ''}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Origine</span>
+                            <span class="value">${plan.origine || plan.origineGouvernorat || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Destination</span>
+                            <span class="value" style="color:#10b981">${plan.destination || '-'}</span>
+                        </div>
+                        ${plan.kilometrage ? `
+                        <div class="info-row">
+                            <span class="label">Distance</span>
+                            <span class="value">${plan.kilometrage} km</span>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                <!-- Reference -->
+                <div class="status-card" style="text-align:center">
+                    <p style="color:#64748b;font-size:0.75rem">Référence de suivi</p>
+                    <p style="font-family:monospace;font-size:0.85rem;color:#8b5cf6;margin-top:4px;letter-spacing:1px">${id}</p>
+                </div>
+            `;
+        }
+
+        function showError(title, message) {
+            container.innerHTML = `
+                <div class="error-card">
+                    <div class="icon">🔍</div>
+                    <h2>${title}</h2>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

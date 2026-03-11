@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Debug/temp files
+*.log
+*.tmp
+
+# Excel/PDF source documents (not code)
+*.xlsx
+*.pdf
+
+# Expo
+FleetTrackMobile/.expo/
+FleetTrackMobile/android/
+FleetTrackMobile/ios/
+FleetTrackMobile/node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Analysis output (regenerable)
+analysis_output.md
+excel_analysis.txt
+complete_excel_data.json
+excel_data.json
+excel_data_clean.json
+extracted_data.json

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetTrack - Connexion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --primary-dark: #7c3aed;
+            --danger: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 60% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 90px;
+            height: 90px;
+            background: rgba(139, 92, 246, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            margin: 0 auto 16px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 20px 4px rgba(139, 92, 246, 0.15);
+            }
+        }
+
+        .logo-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .toggle-pass {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-box {
+            display: none;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #fca5a5;
+        }
+
+        .error-box.visible {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .info-note {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.08);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="logo-section">
+            <div class="logo-icon">🚛</div>
+            <div class="logo-title">Navexis Soft</div>
+            <div class="logo-subtitle">Gestion de flotte intelligente</div>
+        </div>
+
+        <div class="auth-card">
+            <!-- First-Time Setup (hidden by default) -->
+            <div id="setupView" style="display:none">
+                <div class="auth-title">🚀 Configuration initiale</div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;text-align:center">
+                    Aucun utilisateur détecté. Créez le compte Super Admin.
+                </p>
+                <div class="error-box" id="setupError">
+                    <span>⚠️</span>
+                    <span id="setupErrorText"></span>
+                </div>
+                <form id="setupForm">
+                    <div class="form-group">
+                        <label class="form-label">👤 Nom</label>
+                        <input type="text" class="form-input" id="setupName" value="Eskander" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📧 Email</label>
+                        <input type="email" class="form-input" id="setupEmail" placeholder="admin@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🔒 Mot de passe</label>
+                        <input type="password" class="form-input" id="setupPassword" value="Smart@2026" required>
+                    </div>
+                    <button type="submit" class="btn-submit" id="setupBtn">
+                        <span>👑 Créer le Super Admin</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Login View -->
+            <div id="loginView">
+                <div class="auth-title">🔐 Connexion</div>
+
+                <div class="error-box" id="errorBox">
+                    <span>⚠️</span>
+                    <span id="errorText"></span>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">📧 Email</label>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🔒 Mot de passe</label>
+                        <div class="password-wrap">
+                            <input type="password" class="form-input" id="loginPassword" placeholder="••••••••"
+                                required>
+                            <button type="button" class="toggle-pass" id="toggleBtn">👁</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="loginBtn">
+                        <span>Se connecter</span>
+                    </button>
+                </form>
+
+                <div class="info-note">
+                    ℹ️ Votre compte doit être créé par le Super Admin pour pouvoir accéder à l'application.
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-footer">🔥 Firebase · FleetTrack v1.0</div>
+    </div>
+
+    <script type="module">
+        import { AuthModule } from './js/auth-firebase.js';
+
+        const loginView = document.getElementById('loginView');
+        const setupView = document.getElementById('setupView');
+        const loginForm = document.getElementById('loginForm');
+        const errorBox = document.getElementById('errorBox');
+        const errorText = document.getElementById('errorText');
+
+        // ============ CHECK FIRST-TIME SETUP ============
+        async function checkFirstTime() {
+            try {
+                const users = await AuthModule.getAllUsers();
+                if (users.length === 0) {
+                    loginView.style.display = 'none';
+                    setupView.style.display = 'block';
+                }
+            } catch (e) {
+                console.log('Could not check users:', e);
+            }
+        }
+        checkFirstTime();
+
+        // ============ FIRST-TIME SETUP ============
+        document.getElementById('setupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('setupName').value.trim();
+            const email = document.getElementById('setupEmail').value.trim();
+            const password = document.getElementById('setupPassword').value;
+            const btn = document.getElementById('setupBtn');
+            const errBox = document.getElementById('setupError');
+            const errText = document.getElementById('setupErrorText');
+
+            if (!name || !email || !password) {
+                errBox.classList.add('visible');
+                errText.textContent = 'Remplir tous les champs';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Création...';
+
+            try {
+                // Use createUserWithEmailAndPassword directly (no secondary app needed for first user)
+                const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+                const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+                firebaseConfig = {
+  apiKey: "AIzaSyB3nKGz8DFBDPfWRy3uhQYJhdad4hoMsic",
+  authDomain: "devnavexis.firebaseapp.com",
+  projectId: "devnavexis",
+  storageBucket: "devnavexis.firebasestorage.app",
+  messagingSenderId: "607658047105",
+  appId: "1:607658047105:web:9b1925f8340c250d567f80",
+  measurementId: "G-WTLEQYGJWP"
+};
+                // Get existing app or create
+                let app;
+                try {
+                    const { getApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+                    app = getApp();
+                } catch {
+                    app = initializeApp(firebaseConfig);
+                }
+
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, 'users', cred.user.uid), {
+                    uid: cred.user.uid,
+                    email: email,
+                    displayName: name,
+                    role: 'super_admin',
+                    status: 'approved',
+                    createdAt: new Date().toISOString(),
+                    createdBy: 'system'
+                });
+
+                window.location.href = 'index.html';
+            } catch (err) {
+                errBox.classList.add('visible');
+                errText.textContent = err.message || 'Erreur de création';
+                btn.disabled = false;
+                btn.innerHTML = '<span>👑 Créer le Super Admin</span>';
+            }
+        });
+
+        // ============ TOGGLE PASSWORD ============
+        document.getElementById('toggleBtn').addEventListener('click', () => {
+            const input = document.getElementById('loginPassword');
+            const btn = document.getElementById('toggleBtn');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+            }
+        });
+
+        // ============ LOGIN ============
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (!email || !password) {
+                showError('Veuillez remplir tous les champs');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Connexion...';
+            hideError();
+
+            try {
+                const user = await AuthModule.login(email, password);
+                window.location.href = 'index.html';
+            } catch (err) {
+                const msg = err.code === 'auth/invalid-credential'
+                    ? 'Email ou mot de passe incorrect'
+                    : err.code === 'auth/too-many-requests'
+                        ? 'Trop de tentatives. Réessayez plus tard'
+                        : err.message || 'Erreur de connexion';
+                showError(msg);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Se connecter</span>';
+            }
+        });
+
+        // ============ AUTO-REDIRECT ============
+        AuthModule.onAuthChange(async (firebaseUser) => {
+            if (firebaseUser) {
+                const profile = await AuthModule.getUserProfile(firebaseUser.uid);
+                if (profile && profile.status === 'approved') {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+
+        function showError(msg) {
+            errorBox.classList.add('visible');
+            errorText.textContent = msg;
+        }
+
+        function hideError() {
+            errorBox.classList.remove('visible');
+        }
+    </script>
+</body>
+
+</html>

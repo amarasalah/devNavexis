@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetTrack - Firebase</title>
+    <link rel="icon" type="image/png" href="images/logo_concept.png">
+    <meta name="description" content="Application de suivi journalier des camions avec Firebase">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Loader styles */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .firebase-badge {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(139, 92, 246, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #8b5cf6;
+            z-index: 100;
+        }
+
+        /* Submenu styles */
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            padding-left: 20px;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .nav-submenu.active {
+            display: flex;
+        }
+
+        .nav-submenu .nav-item {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            border-left: 2px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .nav-submenu .nav-item:hover {
+            border-left-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .nav-arrow {
+            margin-left: auto;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-group.open .nav-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-en-cours {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-validee {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-transforme {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-recu {
+            background: #c7d2fe;
+            color: #3730a3;
+        }
+
+        .status-payee {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-non-payee {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-partiel {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">🔥 Connexion à Firebase...</div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="images/logo_concept.png" alt="FleetTrack"
+                    style="height:32px;width:32px;object-fit:contain;border-radius:6px">
+                <span class="logo-text">Navexis Soft</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Tableau de bord</span>
+            </a>
+            <a href="#" class="nav-item" data-page="entries">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">Saisie journalière</span>
+            </a>
+            <a href="#" class="nav-item" data-page="planification">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Planification</span>
+            </a>
+            <a href="#" class="nav-item" data-page="tracking">
+                <span class="nav-icon">📍</span>
+                <span class="nav-label">GPS Tracking</span>
+            </a>
+            <div class="nav-group">
+                <a href="#" class="nav-item" data-toggle="achat-local">
+                    <span class="nav-icon">🛒</span>
+                    <span class="nav-label">Achat </span>
+                    <span class="nav-arrow">▼</span>
+                </a>
+                <div class="nav-submenu" id="achat-local-submenu">
+                    <a href="#" class="nav-item" data-page="offres-prix">
+                        <span class="nav-icon">&#x1F4CB;</span>
+                        <span class="nav-label">Demandes d'Achat</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="bon-commandes">
+                        <span class="nav-icon">&#x1F4C4;</span>
+                        <span class="nav-label">Bon Commandes</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="bon-livraisons">
+                        <span class="nav-icon">&#x1F4E6;</span>
+                        <span class="nav-label">Bon Livraisons</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="bon-sorties">
+                        <span class="nav-icon">&#x1F69A;</span>
+                        <span class="nav-label">Bon de Sortie</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="retours-fournisseurs">
+                        <span class="nav-icon">&#x21A9;&#xFE0F;</span>
+                        <span class="nav-label">Bon de Retour</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="factures">
+                        <span class="nav-icon">&#x1F9FE;</span>
+                        <span class="nav-label">Factures Fournisseurs</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="reglements">
+                        <span class="nav-icon">&#x1F4B8;</span>
+                        <span class="nav-label">Règlements</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="articles-achat">
+                        <span class="nav-icon">&#x1F4E6;</span>
+                        <span class="nav-label">Articles d'Achat</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="fournisseurs">
+                        <span class="nav-icon">&#x1F3E2;</span>
+                        <span class="nav-label">Fournisseurs</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Vente Client Submenu -->
+            <div class="nav-group">
+                <a href="#" class="nav-item" data-toggle="vente-client">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-label">Vente Client</span>
+                    <span class="nav-arrow">▼</span>
+                </a>
+                <div class="nav-submenu" id="vente-client-submenu">
+                    <a href="#" class="nav-item" data-page="devis-clients">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-label">Devis / Offres</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="commandes-clients">
+                        <span class="nav-icon">📄</span>
+                        <span class="nav-label">Bon Commandes</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="livraisons-clients">
+                        <span class="nav-icon">📦</span>
+                        <span class="nav-label">Bon Livraisons</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="factures-clients">
+                        <span class="nav-icon">🧾</span>
+                        <span class="nav-label">Factures Clients</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="reglements-clients">
+                        <span class="nav-icon">💸</span>
+                        <span class="nav-label">Règlements Clients</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="articles-vente">
+                        <span class="nav-icon">📦</span>
+                        <span class="nav-label">Articles de Vente</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="clients">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-label">Clients</span>
+                    </a>
+                </div>
+            </div>
+            <a href="#" class="nav-item" data-page="inventaire">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Inventaire Stock</span>
+            </a>
+            <a href="#" class="nav-item" data-page="caisse">
+                <span class="nav-icon">💵</span>
+                <span class="nav-label">Caisse</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="trucks">
+                <span class="nav-icon">🚚</span>
+                <span class="nav-label">Camions</span>
+            </a>
+            <a href="#" class="nav-item" data-page="drivers">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Chauffeurs</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reports">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Rapports</span>
+            </a>
+            <a href="#" class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Paramètres</span>
+            </a>
+            <a href="#" class="nav-item" data-page="messagerie">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Messagerie</span>
+            </a>
+            <a href="#" class="nav-item" data-page="profil">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Mon Profil</span>
+            </a>
+            <a href="#" class="nav-item" data-page="admin" style="display:none">
+                <span class="nav-icon">👑</span>
+                <span class="nav-label">Admin</span>
+            </a>
+        </nav>
+        <!-- User Widget -->
+        <div class="sidebar-footer" style="border-top:1px solid rgba(148,163,184,0.1);padding:12px 16px">
+            <div id="userWidget" style="display:none;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <div
+                        style="width:36px;height:36px;background:rgba(139,92,246,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px">
+                        👤</div>
+                    <div>
+                        <div class="user-name" style="font-size:13px;font-weight:600;color:#f1f5f9">Utilisateur</div>
+                        <div class="user-role" style="font-size:11px;color:#94a3b8">Role</div>
+                    </div>
+                </div>
+                <button class="user-logout"
+                    style="width:100%;padding:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;font-family:inherit">🚪
+                    Déconnexion</button>
+            </div>
+            <button class="btn btn-outline" id="exportBtn" style="width:100%">
+                <span>💾</span> Exporter
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="page-title">
+                <h1 id="pageTitle">Tableau de bord</h1>
+                <p class="date-display" id="currentDate"></p>
+            </div>
+            <div class="top-actions">
+                <div class="date-picker">
+                    <label for="selectedDate">Date:</label>
+                    <input type="date" id="selectedDate">
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <section class="page active" id="page-dashboard">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card profit">
+                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Résultat Global</span>
+                        <span class="kpi-value" id="kpi-result">0 TND</span>
+                        <span class="kpi-trend" id="kpi-result-trend">--</span>
+                    </div>
+                </div>
+                <div class="kpi-card fuel">
+                    <div class="kpi-icon">⛽</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Consommation Gasoil</span>
+                        <span class="kpi-value" id="kpi-gasoil">0 L</span>
+                        <span class="kpi-trend" id="kpi-fuel-cost">0 TND</span>
+                    </div>
+                </div>
+                <div class="kpi-card distance">
+                    <div class="kpi-icon">🛣️</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Kilométrage Total</span>
+                        <span class="kpi-value" id="kpi-km">0 km</span>
+                        <span class="kpi-trend" id="kpi-trips">0 trajets</span>
+                    </div>
+                </div>
+                <div class="kpi-card efficiency">
+                    <div class="kpi-icon">📉</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Coût par Km</span>
+                        <span class="kpi-value" id="kpi-costkm">0 TND/km</span>
+                        <span class="kpi-trend" id="kpi-efficiency">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-grid">
+                <div class="chart-card large">
+                    <div class="chart-header">
+                        <h3>Tendance Résultats (30 jours)</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Répartition des Coûts</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="costsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3>Performance par Camion</h3>
+                </div>
+                <div class="chart-body">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Summary Table -->
+            <div class="data-card">
+                <div class="card-header">
+                    <h3>Récapitulatif du Jour</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="dailySummaryTable">
+                        <thead>
+                            <tr>
+                                <th>Camion</th>
+                                <th>Chauffeur</th>
+                                <th>Destination</th>
+                                <th>Km</th>
+                                <th>Gasoil</th>
+                                <th>Livraison</th>
+                                <th>Résultat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dailySummaryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Entries Page -->
+        <section class="page" id="page-entries">
+            <div class="page-header">
+                <h2>Saisie Journalière</h2>
+                <!-- <button class="btn btn-primary" id="addEntryBtn">
+                    <span>+</span> Nouvelle Saisie
+                </button> -->
+            </div>
+            <div class="data-card">
+                <div class="table-container">
+                    <table class="data-table" id="entriesTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Camion</th>
+                                <th>Chauffeur</th>
+                                <th>Trajet</th>
+                                <th>Km</th>
+                                <th>Gasoil</th>
+                                <th>🔧 Maintenance</th>
+                                <th>Coût</th>
+                                <th>Livraison</th>
+                                <th>TVA</th>
+                                <th>Résultat</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entriesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Planification Page -->
+        <section class="page" id="page-planification">
+            <div class="page-header">
+                <h2>Planification des Livraisons</h2>
+                <button class="btn btn-primary" id="addPlanBtn">
+                    <span>+</span> Nouvelle Planification
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="data-card" style="margin-bottom: 20px;">
+                <div class="filter-row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Date début</label>
+                        <input type="date" id="planDateStart" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Date fin</label>
+                        <input type="date" id="planDateEnd" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label>Client</label>
+                        <select id="planClientFilter" class="form-control">
+                            <option value="">Tous les clients</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Statut</label>
+                        <select id="planStatusFilter" class="form-control">
+                            <option value="">Tous</option>
+                            <option value="planifie">Planifié</option>
+                            <option value="en_cours">En cours</option>
+                            <option value="termine">Terminé</option>
+                            <option value="annule">Annulé</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-outline" id="planFilterBtn">🔍 Filtrer</button>
+                </div>
+            </div>
+
+            <!-- Planning Table -->
+            <div class="data-card">
+                <div class="card-header">
+                    <h3>Planning des Livraisons</h3>
+                    <div class="planning-stats" id="planningStats"
+                        style="display: flex; gap: 20px; font-size: 0.875rem; color: var(--text-secondary);"></div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="planningTable">
+                        <thead>
+                            <tr>
+                                <th>Date & Heure</th>
+                                <th>Client</th>
+                                <th>Camion</th>
+                                <th>Chauffeur</th>
+                                <th>Trajet</th>
+                                <th>Km</th>
+                                <th>Gasoil</th>
+                                <th>Coût</th>
+                                <th>Livraison</th>
+                                <th>Résultat</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="planningBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- GPS Tracking Page -->
+        <section class="page" id="page-tracking">
+            <div id="trackingInfoPanel" style="margin-bottom:12px"></div>
+            <div
+                style="border-radius:12px;overflow:hidden;border:1px solid rgba(148,163,184,0.1);height:calc(100vh - 180px);min-height:500px">
+                <div id="trackingMap" style="width:100%;height:100%"></div>
+            </div>
+        </section>
+
+        <!-- Trucks Page -->
+        <section class="page" id="page-trucks">
+            <div class="page-header">
+                <h2>Gestion des Camions</h2>
+                <button class="btn btn-primary" id="addTruckBtn">
+                    <span>+</span> Ajouter Camion
+                </button>
+            </div>
+            <div class="cards-grid" id="trucksGrid"></div>
+        </section>
+
+        <!-- Drivers Page -->
+        <section class="page" id="page-drivers">
+            <div class="page-header">
+                <h2>Gestion des Chauffeurs</h2>
+                <button class="btn btn-primary" id="addDriverBtn">
+                    <span>+</span> Ajouter Chauffeur
+                </button>
+            </div>
+            <div class="cards-grid" id="driversGrid"></div>
+        </section>
+
+        <!-- Reports Page -->
+        <section class="page" id="page-reports">
+            <div class="page-header">
+                <h2>📈 Rapports</h2>
+                <div class="filter-group" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <select id="reportMonth" style="min-width:160px"></select>
+                    <span style="color:#64748b;font-size:13px">ou</span>
+                    <input type="date" id="reportDateStart" style="min-width:140px" title="Date début">
+                    <input type="date" id="reportDateEnd" style="min-width:140px" title="Date fin">
+                    <button class="btn btn-primary" id="reportFilterBtn" style="padding:8px 16px">🔍 Filtrer</button>
+                    <button class="btn" id="reportExportPDFBtn"
+                        style="padding:8px 16px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">📄
+                        Exporter PDF</button>
+                </div>
+            </div>
+
+            <!-- Transport KPI Cards -->
+            <div id="transportKPIContainer"></div>
+
+            <!-- ERP Summary KPIs -->
+            <div id="erpSummaryContainer"></div>
+
+            <!-- Charts Section -->
+            <div id="chartsContainer"></div>
+
+            <!-- Monthly Report Table -->
+            <div class="data-card">
+                <div class="table-container">
+                    <table class="data-table" id="monthlyTable">
+                        <thead>
+                            <tr>
+                                <th>Camion</th>
+                                <th>Chauffeur(s)</th>
+                                <th>Km</th>
+                                <th>⛽ Gasoil</th>
+                                <th>🏦 Leasing</th>
+                                <th>🛡️ Assur.</th>
+                                <th>📋 Taxes</th>
+                                <th>👷 Pers.</th>
+                                <th>🔧 Maint.</th>
+                                <th>Total Coûts</th>
+                                <th>Revenu TTC</th>
+                                <th>Résultat</th>
+                                <th>Destinations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthlyBody"></tbody>
+                        <tfoot id="monthlyFoot"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Driver Costs Distribution -->
+            <div id="driverCostsContainer"></div>
+        </section>
+
+
+        <!-- Achat Local: Fournisseurs -->
+        <section class="page" id="page-fournisseurs">
+            <div class="page-header">
+                <h2>🏢 Gestion des Fournisseurs</h2>
+                <button class="btn btn-primary" id="addSupplierBtn">
+                    <span>+</span> Nouveau Fournisseur
+                </button>
+            </div>
+            <div class="cards-grid" id="suppliersGrid"></div>
+        </section>
+
+        <!-- Vente Client: Clients -->
+        <section class="page" id="page-clients">
+            <div class="page-header">
+                <h2>👥 Gestion des Clients</h2>
+                <button class="btn btn-primary" id="addClientBtn">
+                    <span>+</span> Nouveau Client
+                </button>
+            </div>
+            <div class="cards-grid" id="clientsGrid"></div>
+        </section>
+
+        <!-- Vente Client: Bon Commandes Vente -->
+        <section class="page" id="page-commandes-clients">
+            <div class="page-header">
+                <h2>📄 Bon Commandes Vente</h2>
+                <button class="btn btn-primary" id="addSalesOrderBtn">
+                    <span>+</span> Nouveau BC Vente
+                </button>
+            </div>
+            <div class="data-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>N° BC</th>
+                                <th>Date</th>
+                                <th>Devis Source</th>
+                                <th>Client</th>
+                                <th>Articles</th>
+                                <th>Total</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesOrdersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Articles d'Achat -->
+        <section class="page" id="page-articles-achat">
+            <div class="page-header">
+                <h2>📦 Articles d'Achat</h2>
+                <button class="btn btn-primary" id="addArticleAchatBtn">
+                    <span>+</span> Nouvel Article d'Achat
+                </button>
+            </div>
+            <div class="data-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Désignation</th>
+                                <th>Catégorie</th>
+                                <th>Unité</th>
+                                <th>Prix Achat</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articlesAchatTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Articles de Vente -->
+        <section class="page" id="page-articles-vente">
+            <div class="page-header">
+                <h2>📦 Articles de Vente</h2>
+                <button class="btn btn-primary" id="addArticleVenteBtn">
+                    <span>+</span> Nouvel Article de Vente
+                </button>
+            </div>
+            <div class="data-card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Désignation</th>
+                                <th>Catégorie</th>
+                                <th>Unité</th>
+                                <th>Prix Vente</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articlesVenteTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- BL Clients Page -->
+        <section class="page" id="page-livraisons-clients">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">📦 Bons de Livraison Clients</h2>
+                        <button class="btn btn-primary" id="addBLClientBtn">➕ Nouveau BL Client</button>
+                    </div>
+                    <!-- Filters -->
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="venteBLDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="venteBLDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Client</label>
+                            <select id="venteBLClient" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="venteBLStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="Livré">Livré</option>
+                                <option value="En cours">En cours</option>
+                                <option value="Annulé">Annulé</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="VenteModule.filterBLs()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° BL</th>
+                                    <th>Date</th>
+                                    <th>BC Source</th>
+                                    <th>Client</th>
+                                    <th>Articles</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blClientsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Factures Clients Page -->
+        <section class="page" id="page-factures-clients">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">🧾 Factures Clients</h2>
+                        <button class="btn btn-primary" id="addFactureClientBtn">➕ Nouvelle Facture</button>
+                    </div>
+                    <!-- Filters -->
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="venteFactDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="venteFactDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Client</label>
+                            <select id="venteFactClient" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">État</label>
+                            <select id="venteFactStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="non_paye">Non Payé</option>
+                                <option value="partiel">Partiel</option>
+                                <option value="paye">Payé</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="VenteModule.filterFactures()">🔍</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                        <div
+                            style="text-align:center;padding:16px;background:rgba(239,68,68,0.1);border-radius:12px;border:1px solid rgba(239,68,68,0.2)">
+                            <div style="font-size:22px;font-weight:700;color:#ef4444" id="totalNonPayeClient">0.000 TND
+                            </div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:4px">Non Payé</div>
+                        </div>
+                        <div
+                            style="text-align:center;padding:16px;background:rgba(16,185,129,0.1);border-radius:12px;border:1px solid rgba(16,185,129,0.2)">
+                            <div style="font-size:22px;font-weight:700;color:#10b981" id="totalPayeClient">0.000 TND
+                            </div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:4px">Payé</div>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° Facture</th>
+                                    <th>Date</th>
+                                    <th>BL Source</th>
+                                    <th>Client</th>
+                                    <th>Montant</th>
+                                    <th>Payé</th>
+                                    <th>État</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facturesClientsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Devis Clients Page -->
+        <section class="page" id="page-devis-clients">
+            <div class="page-content">
+                <!-- Rendered dynamically by VenteModule.renderDevisClients() -->
+            </div>
+        </section>
+
+        <!-- Règlements Clients Page -->
+        <section class="page" id="page-reglements-clients">
+            <div class="page-content">
+                <!-- Rendered dynamically by VenteModule.renderReglementsClients() -->
+            </div>
+        </section>
+
+        <!-- Settings Page -->
+        <section class="page" id="page-settings">
+            <div class="page-header">
+                <h2>Paramètres</h2>
+            </div>
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3>🔥 Firebase Cloud</h3>
+                    <p style="color: #10b981; margin-bottom: 10px;">✅ Connecté</p>
+                    <p style="color: #64748b; font-size: 0.875rem;">Les données sont synchronisées en temps réel</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Prix Gasoil par Défaut</h3>
+                    <div class="input-group">
+                        <input type="number" id="defaultFuelPrice" value="2" step="0.1">
+                        <span class="input-suffix">TND/L</span>
+                    </div>
+                    <button class="btn btn-primary" id="saveFuelPrice">Enregistrer</button>
+                </div>
+                <div class="settings-card">
+                    <h3>📊 Import Excel Direct</h3>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 12px;">
+                        Importez votre fichier Excel et sauvegardez directement dans Firebase
+                    </p>
+                    <div class="excel-upload-zone" id="excelDropZone"
+                        style="border: 2px dashed rgba(139, 92, 246, 0.5); border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 12px; cursor: pointer; transition: all 0.3s;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📁</div>
+                        <p style="color: #f1f5f9; font-weight: 500;">Glissez votre fichier Excel ici</p>
+                        <p style="color: #64748b; font-size: 0.875rem;">ou cliquez pour sélectionner</p>
+                        <input type="file" id="excelFileInput" accept=".xlsx,.xls" hidden>
+                    </div>
+                    <div id="excelImportStatus" style="margin-bottom: 12px; display: none;">
+                        <div class="progress-bar"
+                            style="background: rgba(139, 92, 246, 0.2); border-radius: 8px; height: 20px; overflow: hidden;">
+                            <div id="importProgressBar"
+                                style="width: 0%; height: 100%; background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%); transition: width 0.3s;">
+                            </div>
+                        </div>
+                        <p id="importProgressText" style="color: #64748b; font-size: 0.875rem; margin-top: 8px;">
+                            Importation en cours...</p>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="btn btn-primary" id="importExcelBtn" disabled>
+                            📥 Importer dans Firebase
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>📥 Import JSON (Base de Données)</h3>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 12px;">Importer depuis
+                        complete_excel_data.json</p>
+                    <div class="settings-actions">
+                        <button class="btn btn-primary" id="importDataBtn"
+                            onclick="DataImporter.importFromJSON().then(r => alert(r.success ? `Import réussi! ${r.trucks} camions, ${r.drivers} chauffeurs, ${r.entries} saisies` : 'Erreur: ' + r.error))">📥
+                            Importer JSON</button>
+                        <button class="btn btn-outline" id="mergeDataBtn"
+                            onclick="DataImporter.mergeWithExisting().then(r => alert(r.success ? `${r.added} nouvelles saisies ajoutées` : 'Erreur: ' + r.error))">🔄
+                            Fusionner</button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Données</h3>
+                    <div class="settings-actions">
+                        <button class="btn btn-outline" id="exportDataBtn">📤 Exporter JSON</button>
+                        <label class="btn btn-outline">
+                            📥 Importer JSON
+                            <input type="file" id="importDataInput" accept=".json" hidden>
+                        </label>
+                        <button class="btn btn-danger" id="resetDataBtn">🗑️ Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Caisse Page -->
+        <section class="page" id="page-caisse">
+            <div class="kpi-grid" id="caisseKPIs"></div>
+            <div style="margin:16px 0;font-size:13px" id="caisseTodaySummary"></div>
+            <div class="card" style="padding:20px">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button id="caisseFilterAll" class="btn btn-sm caisse-filter-btn active"
+                            onclick="CaisseModule.setFilter('all')">Tout</button>
+                        <button id="caisseFilterIn" class="btn btn-sm caisse-filter-btn"
+                            onclick="CaisseModule.setFilter('encaissement')">↗ Entrées</button>
+                        <button id="caisseFilterOut" class="btn btn-sm caisse-filter-btn"
+                            onclick="CaisseModule.setFilter('decaissement')">↘ Sorties</button>
+                        <span style="border-left:1px solid #334155;margin:0 4px"></span>
+                        <button id="caisseFilterAchat" class="btn btn-sm caisse-filter-btn"
+                            onclick="CaisseModule.setFilter('achat')" style="border-color:#f59e0b">🛒 Achat</button>
+                        <button id="caisseFilterVente" class="btn btn-sm caisse-filter-btn"
+                            onclick="CaisseModule.setFilter('vente')" style="border-color:#818cf8">🛍️ Vente</button>
+                        <button id="caisseFilterManuel" class="btn btn-sm caisse-filter-btn"
+                            onclick="CaisseModule.setFilter('manuel')">✍️ Manuel</button>
+                    </div>
+                    <button id="addCaisseBtn" class="btn btn-primary">➕ Nouvelle Transaction</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Tiers</th>
+                                <th>Montant</th>
+                                <th>Mode</th>
+                                <th>Référence</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="caisseTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align:center;color:#64748b;padding:40px">Chargement...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Messagerie Page -->
+        <section class="page" id="page-messagerie">
+            <div id="messengerContent">
+                <div style="color:#64748b">Chargement...</div>
+            </div>
+        </section>
+
+        <!-- Inventaire Stock Page -->
+        <section class="page" id="page-inventaire">
+            <!-- Stock KPIs -->
+            <div class="kpi-grid" id="inventaireKPIs"></div>
+
+            <!-- Current Stock Table -->
+            <div class="card" style="padding:20px;margin-bottom:20px">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                    <h3 style="margin:0;color:#f1f5f9;font-size:1.1rem">📦 Stock Actuel</h3>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <select id="inventaireTypeFilter" class="form-control"
+                            style="width:auto;padding:6px;font-size:0.8rem" onchange="InventaireModule.refresh()">
+                            <option value="">Tous les types</option>
+                            <option value="achat">Achat</option>
+                            <option value="vente">Vente</option>
+                        </select>
+                        <input type="text" id="inventaireSearch" class="form-control" placeholder="🔍 Rechercher..."
+                            style="width:200px;padding:6px;font-size:0.8rem" oninput="InventaireModule.refresh()">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Désignation</th>
+                                <th>Type</th>
+                                <th>Stock Actuel</th>
+                                <th>Prix Achat</th>
+                                <th>Valeur Stock</th>
+                                <th>Dernière Entrée</th>
+                                <th>Dernière Sortie</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventaireStockBody">
+                            <tr>
+                                <td colspan="9" style="text-align:center;color:#64748b;padding:40px">Chargement...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Movement History -->
+            <div class="card" style="padding:20px">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                    <h3 style="margin:0;color:#f1f5f9;font-size:1.1rem">📋 Historique des Mouvements</h3>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <input type="date" id="mvtDateStart" class="form-control"
+                            style="width:auto;padding:6px;font-size:0.8rem"
+                            onchange="InventaireModule.refreshMovements()">
+                        <input type="date" id="mvtDateEnd" class="form-control"
+                            style="width:auto;padding:6px;font-size:0.8rem"
+                            onchange="InventaireModule.refreshMovements()">
+                        <select id="mvtTypeFilter" class="form-control" style="width:auto;padding:6px;font-size:0.8rem"
+                            onchange="InventaireModule.refreshMovements()">
+                            <option value="">Tous</option>
+                            <option value="entree">Entrées</option>
+                            <option value="sortie">Sorties</option>
+                            <option value="ajustement">Ajustements</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Article</th>
+                                <th>Type</th>
+                                <th>Quantité</th>
+                                <th>Prix Unit.</th>
+                                <th>Stock Avant</th>
+                                <th>Stock Après</th>
+                                <th>Document</th>
+                                <th>Tiers</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventaireMvtBody">
+                            <tr>
+                                <td colspan="9" style="text-align:center;color:#64748b;padding:40px">Sélectionnez une
+                                    période</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profil Page -->
+        <section class="page" id="page-profil">
+            <div id="profilContent">
+                <div style="color:#64748b">Chargement...</div>
+            </div>
+        </section>
+        <section class="page" id="page-admin">
+            <div id="adminContent">
+                <div class="card" style="margin-bottom:20px;padding:24px">
+                    <h2 style="margin-bottom:20px;font-size:1.25rem">🏷️ Gestion des Rôles</h2>
+                    <div id="roleManagerContent">
+                        <div style="color:#64748b">Chargement...</div>
+                    </div>
+                </div>
+                <div class="card" style="margin-bottom:20px;padding:24px">
+                    <h2 style="margin-bottom:20px;font-size:1.25rem">🚚 Comptes Chauffeurs</h2>
+                    <div id="chauffeurManagerContent">
+                        <div style="color:#64748b">Chargement...</div>
+                    </div>
+                </div>
+                <div class="card" style="padding:24px">
+                    <h2 style="margin-bottom:20px;font-size:1.25rem">👤 Gestion des Utilisateurs</h2>
+                    <div id="userManagerContent">
+                        <div style="color:#64748b">Chargement...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- GPS Tracking moved to standalone page: page-tracking -->
+        </section>
+
+        <!-- Demandes d'Achat Page -->
+        <section class="page" id="page-offres-prix">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">📋 Demandes d'Achat</h2>
+                        <button class="btn btn-primary" id="addDemandeBtn">➕ Nouvelle
+                            Demande</button>
+                    </div>
+                    <!-- Filters -->
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatDADateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatDADateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Fournisseur</label>
+                            <select id="achatDAFournisseur" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="achatDAStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="Brouillon">Brouillon</option>
+                                <option value="En cours">En cours</option>
+                                <option value="Validée">Validée</option>
+                                <option value="Rejetée">Rejetée</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterDemandes()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° DA</th>
+                                    <th>Date</th>
+                                    <th>Fournisseur</th>
+                                    <th>Camion</th>
+                                    <th>Articles</th>
+                                    <th>Total</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="offresBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bon Commandes Page -->
+        <section class="page" id="page-bon-commandes">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">📄 Bons de Commande</h2>
+                        <button class="btn btn-primary" id="addCommandeBtn">➕ Nouveau BC</button>
+                    </div>
+                    <!-- Filters -->
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatBCDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatBCDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Fournisseur</label>
+                            <select id="achatBCFournisseur" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="achatBCStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="Brouillon">Brouillon</option>
+                                <option value="Validé">Validé</option>
+                                <option value="Envoyé">Envoyé</option>
+                                <option value="Reçu">Reçu</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterCommandes()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° BC</th>
+                                    <th>Date</th>
+                                    <th>DA Source</th>
+                                    <th>Fournisseur</th>
+                                    <th>Articles</th>
+                                    <th>Total</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="commandesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bon Livraisons Page -->
+        <section class="page" id="page-bon-livraisons">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">📦 Bons de Livraison</h2>
+                        <button class="btn btn-primary" id="addLivraisonBtn">➕ Nouveau BL</button>
+                    </div>
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatBLDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatBLDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Fournisseur</label>
+                            <select id="achatBLFournisseur" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="achatBLStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="Reçu">Reçu</option>
+                                <option value="Partiel">Partiel</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterLivraisons()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° BL</th>
+                                    <th>Date</th>
+                                    <th>BC Source</th>
+                                    <th>Fournisseur</th>
+                                    <th>Articles</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="livraisonsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bon de Sortie Page -->
+        <section class="page" id="page-bon-sorties">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">🚚 Bons de Sortie</h2>
+                        <button class="btn btn-primary" id="addSortieBtn">➕ Nouveau BS</button>
+                    </div>
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatBSDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatBSDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="achatBSStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="Sorti">Sorti</option>
+                                <option value="En attente">En attente</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterSorties()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° BS</th>
+                                    <th>Date</th>
+                                    <th>BL Source</th>
+                                    <th>Camion</th>
+                                    <th>Articles</th>
+                                    <th>💰 Coût</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sortiesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bon de Retour Achat Page -->
+        <!-- Bon de Retour Fournisseur Page -->
+        <section class="page" id="page-retours-fournisseurs">
+            <div class="page-content">
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">&#x21A9;&#xFE0F; Bons de Retour Fournisseur</h2>
+                        <button class="btn btn-primary" id="addRetourBtn">&#x2795; Nouveau Retour</button>
+                    </div>
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatBRDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatBRDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Fournisseur</label>
+                            <select id="achatBRFournisseur" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Statut</label>
+                            <select id="achatBRStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="En cours">En cours</option>
+                                <option value="Accepté">Accepté</option>
+                                <option value="Refusé">Refusé</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterRetours()">&#x1F50D;</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° BR</th>
+                                    <th>Date</th>
+                                    <th>BL Source</th>
+                                    <th>Fournisseur</th>
+                                    <th>Articles</th>
+                                    <th>Motif</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="retoursBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Factures Page -->
+        <section class="page" id="page-factures">
+            <div class="page-content">
+                <div class="kpi-grid" style="margin-bottom:20px">
+                    <div class="kpi-card" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">
+                        <div class="kpi-icon">⚠️</div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Non Payé</span>
+                            <span class="kpi-value" id="totalNonPaye" style="color:#ef4444">0.000 TND</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)">
+                        <div class="kpi-icon">✅</div>
+                        <div class="kpi-content">
+                            <span class="kpi-label">Payé</span>
+                            <span class="kpi-value" id="totalPaye" style="color:#10b981">0.000 TND</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h2 style="font-size:1.25rem">🧾 Factures Fournisseurs</h2>
+                        <button class="btn btn-primary" id="addFactureBtn">➕ Nouvelle
+                            Facture</button>
+                    </div>
+                    <!-- Filters -->
+                    <div class="filter-row"
+                        style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;padding:12px;background:rgba(15,23,42,0.3);border-radius:8px">
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date début</label>
+                            <input type="date" id="achatFactDateStart" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">Date fin</label>
+                            <input type="date" id="achatFactDateEnd" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:150px">
+                            <label style="font-size:12px;color:#94a3b8">Fournisseur</label>
+                            <select id="achatFactFournisseur" class="form-control">
+                                <option value="">Tous</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:130px">
+                            <label style="font-size:12px;color:#94a3b8">État</label>
+                            <select id="achatFactStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="non_paye">Non Payé</option>
+                                <option value="partiel">Partiel</option>
+                                <option value="paye">Payé</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" onclick="AchatModule.filterFactures()">🔍</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° Facture</th>
+                                    <th>Date</th>
+                                    <th>BL Source</th>
+                                    <th>Fournisseur</th>
+                                    <th>Montant</th>
+                                    <th>Payé</th>
+                                    <th>État</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facturesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Règlements Page -->
+        <section class="page" id="page-reglements">
+            <div class="page-content" id="reglementsContent">
+                <div style="color:#64748b;padding:40px;text-align:center">Chargement...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Template -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Titre</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="modalCancel">Annuler</button>
+                <button class="btn btn-primary" id="modalSave">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Badge -->
+    <div class="firebase-badge">🔥 Firebase</div>
+
+    <!-- Scripts - ES Modules -->
+    <script src="js/locations.js"></script>
+    <script src="js/data-importer.js"></script>
+    <script type="module" src="js/app-firebase.js"></script>
+</body>
+
+</html>
